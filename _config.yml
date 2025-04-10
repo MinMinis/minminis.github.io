@@ -254,6 +254,7 @@ paginate: 5
 
 kramdown:
   input: GFM
+  auto_ids: true
 
 # Default YAML values (more information on Jekyll's site)
 defaults:
@@ -283,6 +284,7 @@ exclude:
 plugins:
   - jekyll-paginate
   - jekyll-sitemap
+  - jekyll-toc
 # Beautiful Jekyll / Dean Attali
 # 2fc73a3a967e97599c9763d05e564189
 

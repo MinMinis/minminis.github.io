@@ -9,7 +9,21 @@ date: 2025-04-09 19:23:00 +0700
 
 # HTTP Security Headers: Bảo Vệ Website Trước Các Cuộc Tấn Công Mạng
 
-HTTP Security Headers là các tiêu đề HTTP mà server gửi đến trình duyệt để hướng dẫn cách xử lý nội dung và tương tác với website. Chúng là lớp phòng thủ quan trọng giúp bảo vệ website khỏi các cuộc tấn công mạng phổ biến như Cross-Site Scripting (XSS), Clickjacking, Man-in-the-Middle (MitM), và nhiều mối đe dọa khác. Trong bài blog này, chúng ta sẽ đi sâu vào từng tiêu đề bảo mật, giải thích cách attackers có thể khai thác chúng nếu không được cấu hình đúng, và cách bạn nên cấu hình chúng để tăng cường bảo mật. Ngoài các headers phổ biến, tôi cũng sẽ đề cập đến những headers ít được chú ý nhưng vẫn tiềm ẩn nguy cơ lớn nếu bị bỏ qua.
+## 📑 Mục lục
+
+- [HTTP Security Headers: Bảo Vệ Website Trước Các Cuộc Tấn Công Mạng](#http-security-headers-bảo-vệ-website-trước-các-cuộc-tấn-công-mạng)
+  - [📑 Mục lục](#-mục-lục)
+  - [Tại Sao HTTP Security Headers Quan Trọng?](#tại-sao-http-security-headers-quan-trọng)
+  - [Danh Sách Các HTTP Security Headers Quan Trọng](#danh-sách-các-http-security-headers-quan-trọng)
+    - [1. **X-Content-Type-Options**](#1-x-content-type-options)
+    - [2. **X-Frame-Options**](#2-x-frame-options)
+    - [3. **Content-Security-Policy (CSP)**](#3-content-security-policy-csp)
+    - [4. **Strict-Transport-Security (HSTS)**](#4-strict-transport-security-hsts)
+    - [5. **Referrer-Policy**](#5-referrer-policy)
+    - [6. **Cross-Origin-Resource-Policy (CORP)**](#6-cross-origin-resource-policy-corp)
+    - [7. **Access-Control-Allow-Origin**](#7-access-control-allow-origin)
+
+HTTP Security Headers là các tiêu đề HTTP mà server gửi đến trình duyệt để hướng dẫn cách xử lý nội dung và tương tác với website. Chúng là lớp phòng thủ quan trọng giúp bảo vệ website khỏi các cuộc tấn công mạng phổ biến như Cross-Site Scripting (XSS), Clickjacking, Man-in-the-Middle (MitM), và nhiều mối đe dọa khác. Trong bài blog này, chúng ta sẽ đi sâu vào từng tiêu đề bảo mật, giải thích cách attackers có thể khai thác chúng nếu không được cấu hình đúng, và cách bạn nên cấu hình chúng để tăng cường bảo mật.
 
 ## Tại Sao HTTP Security Headers Quan Trọng?
 
@@ -124,3 +138,60 @@ Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 - **Tham Khảo**:
   - [https://hackerone.com/reports/20072](https://hackerone.com/reports/20072)
   - [https://hackerone.com/reports/7969](https://hackerone.com/reports/7969)
+
+### 5. **Referrer-Policy**
+
+- **Mô tả**: Kiểm soát thông tin Referer được gửi khi người dùng nhấp vào liên kết.
+- **Giá trị hợp lệ**: no-referrer, strict-origin-when-cross-origin.
+- **Rủi ro nếu không có**:
+  - Attackers có thể thu thập thông tin nhạy cảm từ header Referer (như token, tham số URL).
+- **Ví dụ khai thác**:
+  - URL `https://yourwebsite.com/reset?token=abc123` được gửi trong Referer khi người dùng nhấp sang trang độc hại, attacker thu thập token để chiếm quyền.
+- **Cách cấu hình**:
+
+```nginx
+add_header Referrer-Policy "strict-origin-when-cross-origin";
+```
+
+- **Lợi ích**: Bảo vệ thông tin nhạy cảm khỏi bị rò rỉ qua header `Referer`.
+- **Tham Khảo**:
+  - [https://hackerone.com/reports/2133308](https://hackerone.com/reports/2133308)
+  - [https://hackerone.com/reports/787160](https://hackerone.com/reports/787160)
+  - [https://hackerone.com/reports/5199](https://hackerone.com/reports/5199)
+
+### 6. **Cross-Origin-Resource-Policy (CORP)**
+
+- **Mô tả**: Kiểm soát cách tài nguyên được chia sẻ với các origin khác.
+- **Giá trị hợp lệ**: same-origin, same-site, cross-origin.
+- **Rủi ro nếu không có**:
+  - Attackers có thể tải tài nguyên từ website của bạn (như hình ảnh, script) và sử dụng chúng trong các trang độc hại.
+- **Ví dụ khai thác**:
+  - Một trang độc hại tải `<img src="https://evil.com/sensitive-image.jpg">` và sử dụng để phân tích hoặc đánh lừa người dùng.
+- **Cách cấu hình**:
+
+```nginx
+add_header Cross-Origin-Resource-Policy "same-origin";
+```
+
+- **Lợi ích**: Giới hạn việc chia sẻ tài nguyên, giảm nguy cơ bị lạm dụng.
+- **Tham Khảo**:
+  - [https://hackerone.com/reports/958459](https://hackerone.com/reports/958459)
+  - [https://hackerone.com/reports/426165](https://hackerone.com/reports/426165)
+  - [https://hackerone.com/reports/13551](https://hackerone.com/reports/13551)
+  - [https://hackerone.com/reports/2332728](https://hackerone.com/reports/2332728)
+
+### 7. **Access-Control-Allow-Origin**
+
+- **Mô tả**: Kiểm soát các origin được phép truy cập tài nguyên qua CORS.
+- **Giá trị hợp lệ**: \*, https://trusted.com.
+- **Rủi ro nếu cấu hình sai**:
+  - Nếu đặt \*, attackers có thể truy cập tài nguyên từ bất kỳ origin nào, dẫn đến rò rỉ dữ liệu.
+- **Ví dụ khai thác**:
+  - API trả về dữ liệu nhạy cảm bị trang độc hại truy cập qua <script src="https://yourwebsite.com/api">.
+- **Cách cấu hình**:
+
+```nginx
+add_header Access-Control-Allow-Origin "https://trusted.com";
+```
+
+- **Lợi ích**: Giới hạn truy cập tài nguyên chỉ từ các origin tin cậy.
